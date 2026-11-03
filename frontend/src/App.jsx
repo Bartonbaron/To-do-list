@@ -98,7 +98,7 @@ function Dashboard({ user, onLogout }) {
   return <div className="dashboard">
     <header className="topbar"><div className="brand"><span className="brand-mark">✓</span> taskly</div><div className="user-menu"><span className="avatar">{user.username.slice(0,1).toUpperCase()}</span><span>{user.username}</span><button className="logout" onClick={onLogout}>Wyloguj</button></div></header>
     <main className="dashboard-main">
-      <div className="welcome"><div><p className="eyebrow">TWÓJ OSOBISTY PLANER</p><h1>Cześć, {user.username} <span>✦</span></h1><p className="muted">Małe kroki prowadzą do wielkich rzeczy. Co dziś zrobisz?</p></div><div className="date-chip">{new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}</div></div>
+      <div className="welcome"><div><p className="eyebrow">TWÓJ OSOBISTY PLANER</p><h1>Cześć, {user.username} <span></span></h1><p className="muted">Małe kroki prowadzą do wielkich rzeczy. Co dziś zrobisz?</p></div><div className="date-chip">{new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}</div></div>
       <section className="stats"><div className="stat-card"><span className="stat-icon lavender">▤</span><div><strong>{tasks.length}</strong><span>Wszystkie zadania</span></div></div><div className="stat-card"><span className="stat-icon peach">◷</span><div><strong>{tasks.length - completed}</strong><span>Do zrobienia</span></div></div><div className="stat-card"><span className="stat-icon mint">✓</span><div><strong>{completed}</strong><span>Ukończone</span></div></div></section>
       <section className="content-grid">
         <div className="task-panel">
