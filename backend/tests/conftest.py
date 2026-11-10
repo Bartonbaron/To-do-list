@@ -2,20 +2,22 @@ import sys
 import os
 import pytest
 
-# Dodajemy katalog backend do ścieżki, aby Python widział pliki app.py i models.py
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, backend_dir)
 
-# Importujemy funkcję tworzącą aplikację (zamiast zmiennej app)
+os.makedirs(os.path.join(backend_dir, 'instance'), exist_ok=True)
+
+os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
 from app import create_app
 from models import db
 
 @pytest.fixture
 def app():
-    """Tworzy nową instancję aplikacji Flask przed każdym testem."""
-    # 1. Wywołujemy funkcję, która zwraca gotowy obiekt aplikacji
+    """Tworzy i konfiguruje czystą instancję aplikacji przed każdym testem."""
     flask_app = create_app()
 
-    # 2. Nadpisujemy ustawienia na czas testów (baza w pamięci RAM)
     flask_app.config.update({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
@@ -23,7 +25,6 @@ def app():
         "SECRET_KEY": "test-secret"
     })
 
-    # 3. Tworzymy tabele w testowej bazie danych przed testem i czyścimy po nim
     with flask_app.app_context():
         db.create_all()
         yield flask_app
