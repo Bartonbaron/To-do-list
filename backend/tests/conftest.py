@@ -2,28 +2,28 @@ import sys
 import os
 import pytest
 
+# 1. Dodajemy katalog backend do ścieżki
 backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, backend_dir)
 
-os.makedirs(os.path.join(backend_dir, 'instance'), exist_ok=True)
+# 2. Importujemy Config ZANIM zaimportujemy app.py!
+from config import Config
 
-os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
-os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+# Nadpisujemy ścieżkę "/app/instance/todo.db" na bazę w pamięci RAM,
+# żeby linijka "app = create_app()" wykonywana przy imporcie app.py nie wywaliła błędu
+Config.SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+Config.TESTING = True
+Config.JWT_SECRET_KEY = "bardzo-dlugi-i-bezpieczny-klucz-testowy-jwt-minimum-32-znaki"
+Config.SECRET_KEY = "bardzo-dlugi-i-bezpieczny-klucz-testowy-secret-32-znaki"
 
+# 3. Dopiero teraz bezpiecznie importujemy create_app i db
 from app import create_app
 from models import db
 
 @pytest.fixture
 def app():
-    """Tworzy i konfiguruje czystą instancję aplikacji przed każdym testem."""
+    """Tworzy czystą instancję aplikacji z bazą w pamięci RAM przed każdym testem."""
     flask_app = create_app()
-
-    flask_app.config.update({
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "JWT_SECRET_KEY": "test-secret-key",
-        "SECRET_KEY": "test-secret"
-    })
 
     with flask_app.app_context():
         db.create_all()
