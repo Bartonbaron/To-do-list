@@ -94,7 +94,7 @@ Otwórz `http://localhost:5173`.
 
 ## Git
 
-Nie commituj pliku `.env`, tokenów ani bazy danych zawierającej prawdziwe dane użytkowników.
+Nie commituj pliku `.env`, tokenów ani bazy danych (pliki .db) zawierającej prawdziwe dane użytkowników.
 
 ## Uruchomienie przez Podman (zalecane)
 
