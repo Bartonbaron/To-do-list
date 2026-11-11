@@ -16,3 +16,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_ACCESS_TOKEN_EXPIRES = 60 * 60 * 8
+    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "")
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")

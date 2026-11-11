@@ -70,7 +70,47 @@ function AuthScreen({ onAuthenticated }) {
   </main>;
 }
 
-function Dashboard({ user, onLogout }) {
+function AdminDashboard({ user, onLogout, onBack }) {
+  const [tables, setTables] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api("/admin/database")
+      .then(data => setTables(data.tables))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return <div className="dashboard">
+    <header className="topbar">
+      <div className="brand"><span className="brand-mark">✓</span> taskly</div>
+      <div className="admin-header-actions"><span>{user.username}</span><button className="secondary-btn" onClick={onBack}>Lista zadań</button><button className="logout" onClick={onLogout}>Wyloguj</button></div>
+    </header>
+    <main className="dashboard-main admin-main">
+      <div className="welcome"><div><p className="eyebrow">PANEL ADMINISTRATORA</p><h1>Struktura bazy danych</h1><p className="muted">Podgląd tabel, kolumn i liczby rekordów.</p></div></div>
+      {error && <p className="error" role="alert">{error}</p>}
+      {loading ? <p className="empty">Ładowanie struktury bazy...</p> : <div className="admin-tables">
+        {tables.map(table => <section className="admin-table-card" key={table.name}>
+          <div className="admin-table-heading"><h2>{table.name}</h2><span className="count-pill">{table.row_count} rekordów</span></div>
+          <div className="admin-columns"><div className="admin-column-row admin-column-header"><span>Kolumna</span><span>Typ</span><span>Właściwości</span></div>
+            {table.columns.map(column => <div className="admin-column-row" key={column.name}><strong>{column.name}</strong><span>{column.type}</span><span>{column.primary_key ? "PRIMARY KEY" : column.nullable ? "NULL" : "NOT NULL"}</span></div>)}
+          </div>
+          <h3 className="admin-content-title">Zawartość tabeli</h3>
+          {table.rows.length === 0 ? <p className="empty admin-empty">Brak rekordów.</p> : <div className="admin-content-scroll"><table className="admin-content-table"><thead><tr>{table.columns.map(column => <th key={column.name}>{column.name}</th>)}</tr></thead><tbody>{table.rows.map((row, index) => <tr key={index}>{table.columns.map(column => <td key={column.name}>{formatAdminValue(row[column.name])}</td>)}</tr>)}</tbody></table></div>}
+        </section>)}
+      </div>}
+    </main>
+  </div>;
+}
+
+function formatAdminValue(value) {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "boolean") return value ? "true" : "false";
+  return String(value);
+}
+
+function Dashboard({ user, onLogout, onOpenAdmin }) {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -213,6 +253,7 @@ function Dashboard({ user, onLogout }) {
         </label>
         {profilePhoto && <button className="profile-option" type="button" onClick={removePhoto}>Usuń zdjęcie</button>}
         {photoError && <p className="profile-photo-error" role="alert">{photoError}</p>}
+        {user.is_admin && <button className="profile-option" type="button" onClick={onOpenAdmin}>Panel administratora</button>}
         <button className="profile-option" type="button" disabled title="Ta funkcja będzie dostępna wkrótce">Ustawienia profilu <span>Wkrótce</span></button>
         <button className="profile-option profile-logout" type="button" onClick={onLogout}>Wyloguj</button>
       </div>}
@@ -246,12 +287,15 @@ function Dashboard({ user, onLogout }) {
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [adminView, setAdminView] = useState(false);
   const [checking, setChecking] = useState(Boolean(localStorage.getItem("todo_token")));
   useEffect(() => {
     if (!localStorage.getItem("todo_token")) return;
     api("/auth/me").then(data => setUser(data.user)).catch(() => localStorage.removeItem("todo_token")).finally(() => setChecking(false));
   }, []);
-  function logout() { localStorage.removeItem("todo_token"); setUser(null); }
+  function logout() { localStorage.removeItem("todo_token"); setUser(null); setAdminView(false); }
   if (checking) return <div className="loading-screen">Taskly ładuje Twój planer...</div>;
-  return user ? <Dashboard user={user} onLogout={logout} /> : <AuthScreen onAuthenticated={setUser} />;
+  if (!user) return <AuthScreen onAuthenticated={setUser} />;
+  if (adminView && user.is_admin) return <AdminDashboard user={user} onLogout={logout} onBack={() => setAdminView(false)} />;
+  return <Dashboard user={user} onLogout={logout} onOpenAdmin={() => setAdminView(true)} />;
 }

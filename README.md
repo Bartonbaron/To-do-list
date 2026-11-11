@@ -42,7 +42,7 @@ Następnie:
 pip install -r requirements.txt
 ```
 
-Skopiuj `.env.example` do `.env` i ustaw własne, losowe wartości `SECRET_KEY` oraz `JWT_SECRET_KEY`.
+Skopiuj `.env.example` do `.env` i ustaw własne, losowe wartości `SECRET_KEY`, `JWT_SECRET_KEY` oraz `ADMIN_PASSWORD`.
 Na Windows PowerShell:
 
 ```powershell
@@ -81,6 +81,7 @@ Otwórz `http://localhost:5173`.
 | PATCH  | `/api/tasks/<id>`    | JWT       | Edycja / zmiana statusu własnego zadania |
 | DELETE | `/api/tasks/<id>`    | JWT       | Usunięcie własnego zadania               |
 | GET    | `/api/health`        | publiczny | Status API                               |
+| GET    | `/api/admin/database` | admin JWT | Struktura bazy i liczba rekordów         |
 
 ## Bezpieczeństwo i ważne uwagi
 
@@ -134,6 +135,8 @@ podman compose down
 Frontend jest serwowany przez Nginx, który przekazuje żądania `/api/` do backendu Flask. Dzięki temu przeglądarka korzysta z jednego adresu i nie trzeba wystawiać portu backendu na hosta.
 
 Plik `.env` zawiera sekrety — nie dodawaj go do repozytorium. Nie używaj przykładowych wartości w środowisku produkcyjnym.
+
+Przy pierwszym uruchomieniu backend utworzy konto administratora na podstawie `ADMIN_USERNAME`, `ADMIN_EMAIL` i `ADMIN_PASSWORD`. Domyślna nazwa to `admin`, a hasło musi mieć co najmniej 8 znaków. Panel administratora pokazuje strukturę tabel i ich zawartość, ale ukrywa hasła, sekrety, tokeny oraz ich hashe.
 
 ## Tryb deweloperski z hot reload
 

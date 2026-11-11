@@ -7,6 +7,9 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
       DATABASE_URL: sqlite:////app/instance/todo.db
     volumes:
       - ./backend/instance:/app/instance

@@ -442,6 +442,132 @@ textarea {
   padding: 48px 28px 24px;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #77758c;
+  font-size: 12px;
+}
+
+.admin-header-actions .secondary-btn {
+  padding: 8px 12px;
+  font-size: 11px;
+}
+
+.admin-header-actions .logout {
+  border: 0;
+  margin-left: 0;
+  background: none;
+  color: #77758c;
+  font-size: 12px;
+}
+
+.admin-tables {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-table-card {
+  padding: 23px;
+  background: white;
+  border: 1px solid #eeedf4;
+  border-radius: 15px;
+}
+
+.admin-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.admin-table-heading h2 {
+  margin: 0;
+  font: 800 18px Manrope;
+}
+
+.admin-columns {
+  overflow: hidden;
+  border: 1px solid #f0eff5;
+  border-radius: 9px;
+}
+
+.admin-column-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 11px 13px;
+  border-bottom: 1px solid #f0eff5;
+  color: #77758c;
+  font-size: 11px;
+}
+
+.admin-column-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-column-row strong {
+  color: #444258;
+}
+
+.admin-column-header {
+  background: #faf9fd;
+  color: #9291a3;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-content-title {
+  margin: 22px 0 10px;
+  color: #55546c;
+  font: 700 13px Manrope;
+}
+
+.admin-content-scroll {
+  overflow-x: auto;
+  border: 1px solid #f0eff5;
+  border-radius: 9px;
+}
+
+.admin-content-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.admin-content-table th,
+.admin-content-table td {
+  padding: 10px 13px;
+  border-bottom: 1px solid #f0eff5;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-content-table th {
+  background: #faf9fd;
+  color: #9291a3;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.admin-content-table td {
+  max-width: 280px;
+  color: #55546c;
+  overflow-wrap: anywhere;
+}
+
+.admin-content-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-empty {
+  padding: 18px 0 0;
+  text-align: left;
+}
+
 .welcome {
   display: flex;
   justify-content: space-between;
@@ -840,6 +966,10 @@ footer {
 
   .topbar {
     padding: 0 16px;
+  }
+
+  .admin-header-actions > span {
+    display: none;
   }
 
   .profile-trigger {

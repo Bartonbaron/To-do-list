@@ -9,6 +9,7 @@ class User(db.Model):
     username = db.Column(db.String(40), unique=True, nullable=False, index=True)
     email = db.Column(db.String(254), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
     tasks = db.relationship("Task", backref="owner", lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password):

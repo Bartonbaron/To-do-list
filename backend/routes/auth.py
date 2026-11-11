@@ -23,7 +23,7 @@ def register():
     db.session.add(user)
     db.session.commit()
     token = create_access_token(identity=str(user.id))
-    return jsonify(token=token, user={"id": user.id, "username": user.username, "email": user.email}), 201
+    return jsonify(token=token, user={"id": user.id, "username": user.username, "email": user.email, "is_admin": user.is_admin}), 201
 
 @auth_bp.post("/login")
 def login():
@@ -39,7 +39,7 @@ def login():
         return jsonify(message="Nieprawidłowy login lub hasło."), 401
 
     token = create_access_token(identity=str(user.id))
-    return jsonify(token=token, user={"id": user.id, "username": user.username, "email": user.email})
+    return jsonify(token=token, user={"id": user.id, "username": user.username, "email": user.email, "is_admin": user.is_admin})
 
 @auth_bp.get("/me")
 @jwt_required()
@@ -47,4 +47,4 @@ def me():
     user = db.session.get(User, int(get_jwt_identity()))
     if not user:
         return jsonify(message="Użytkownik nie istnieje."), 404
-    return jsonify(user={"id": user.id, "username": user.username, "email": user.email})
+    return jsonify(user={"id": user.id, "username": user.username, "email": user.email, "is_admin": user.is_admin})
