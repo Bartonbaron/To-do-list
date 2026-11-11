@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 
 function AuthScreen({ onAuthenticated }) {
@@ -80,6 +80,60 @@ function Dashboard({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
   const [busyAction, setBusyAction] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem(`todo_profile_photo_${user.id}`) || "");
+  const [photoError, setPhotoError] = useState("");
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    function closeProfileMenu(event) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    }
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setProfileOpen(false);
+    }
+    document.addEventListener("mousedown", closeProfileMenu);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeProfileMenu);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
+
+  function handlePhotoChange(event) {
+    const file = event.target.files[0];
+    event.target.value = "";
+    setPhotoError("");
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Wybierz plik graficzny.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError("Zdjęcie może mieć maksymalnie 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        localStorage.setItem(`todo_profile_photo_${user.id}`, reader.result);
+        setProfilePhoto(reader.result);
+      } catch {
+        setPhotoError("Nie udało się zapisać zdjęcia w tej przeglądarce.");
+      }
+    };
+    reader.onerror = () => setPhotoError("Nie udało się odczytać zdjęcia.");
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto() {
+    localStorage.removeItem(`todo_profile_photo_${user.id}`);
+    setProfilePhoto("");
+    setPhotoError("");
+  }
 
   async function loadTasks() {
     try { const data = await api("/tasks"); setTasks(data.tasks); setError(""); }
@@ -140,7 +194,29 @@ function Dashboard({ user, onLogout }) {
   const progress = tasks.length ? Math.round(completed / tasks.length * 100) : 0;
 
   return <div className="dashboard">
-    <header className="topbar"><div className="brand"><span className="brand-mark">✓</span> taskly</div><div className="user-menu"><span className="avatar">{user.username.slice(0,1).toUpperCase()}</span><span>{user.username}</span><button className="logout" onClick={onLogout}>Wyloguj</button></div></header>
+    <header className="topbar"><div className="brand"><span className="brand-mark">✓</span> taskly</div><div className="profile-menu" ref={profileMenuRef}>
+      <button className="profile-trigger" type="button" aria-expanded={profileOpen} aria-haspopup="menu" onClick={() => setProfileOpen(open => !open)}>
+        <span className="avatar">{profilePhoto ? <img src={profilePhoto} alt="" /> : user.username.slice(0,1).toUpperCase()}</span>
+        <span>{user.username}</span>
+        <span className={`profile-chevron ${profileOpen ? "is-open" : ""}`} aria-hidden="true">⌄</span>
+      </button>
+      {profileOpen && <div className="profile-dropdown" role="menu">
+        <div className="profile-summary">
+          <span className="profile-avatar-large">{profilePhoto ? <img src={profilePhoto} alt="" /> : user.username.slice(0,1).toUpperCase()}</span>
+          <strong>{user.username}</strong>
+          <span>{user.email}</span>
+        </div>
+        <div className="profile-divider" />
+        <label className="profile-option profile-upload">
+          <span>{profilePhoto ? "Zmień zdjęcie" : "Dodaj zdjęcie"}</span>
+          <input type="file" accept="image/*" onChange={handlePhotoChange} />
+        </label>
+        {profilePhoto && <button className="profile-option" type="button" onClick={removePhoto}>Usuń zdjęcie</button>}
+        {photoError && <p className="profile-photo-error" role="alert">{photoError}</p>}
+        <button className="profile-option" type="button" disabled title="Ta funkcja będzie dostępna wkrótce">Ustawienia profilu <span>Wkrótce</span></button>
+        <button className="profile-option profile-logout" type="button" onClick={onLogout}>Wyloguj</button>
+      </div>}
+    </div></header>
     <main className="dashboard-main">
       <div className="welcome"><div><p className="eyebrow">TWÓJ OSOBISTY PLANER</p><h1>Cześć, {user.username} <span></span></h1><p className="muted">Małe kroki prowadzą do wielkich rzeczy. Co dziś zrobisz?</p></div><div className="date-chip">{new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}</div></div>
       <section className="stats"><div className="stat-card"><span className="stat-icon lavender">▤</span><div><strong>{tasks.length}</strong><span>Wszystkie zadania</span></div></div><div className="stat-card"><span className="stat-icon peach">◷</span><div><strong>{tasks.length - completed}</strong><span>Do zrobienia</span></div></div><div className="stat-card"><span className="stat-icon mint">✓</span><div><strong>{completed}</strong><span>Ukończone</span></div></div></section>
