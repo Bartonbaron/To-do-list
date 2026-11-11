@@ -151,3 +151,170 @@ W tym trybie frontend jest dostępny pod adresem http://localhost:5173, a backen
 ```powershell
 docker compose -f compose.yaml -f compose.dev.yaml down
 ```
+---
+
+## Wymagania środowiskowe
+
+Do uruchomienia projektu wymagane są:
+* **Docker** wraz z **Docker Compose** lub **Podman** z `podman-compose` (zalecane do uruchomienia w kontenerach)
+* Alternatywnie (do uruchomienia lokalnego bez kontenerów):
+  * **Python** 3.10+ (Backend)
+  * **Node.js** 18+ oraz `npm` (Frontend)
+
+---
+
+## Sposób instalacji
+
+1. **Sklonuj repozytorium na dysk:**
+   ```bash
+   git clone <ADRES_TWOJEGO_REPOZYTORIUM>
+   cd To-do-list
+   ```
+
+2. **Skonfiguruj zmienne środowiskowe:**
+   Skopiuj przykładowy plik konfiguracyjny `.env.example` do pliku `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+---
+
+## Sposób uruchomienia
+
+### Opcja 1: Za pomocą kontenerów (Podman / Docker) – zalecana
+W głównym katalogu projektu (tam, gdzie znajduje się plik `compose.yaml`) wykonaj:
+
+```bash
+# Dla Podmana:
+podman compose up -d --build
+
+# Dla Dockera:
+docker compose up -d --build
+```
+
+Aby uruchomić testy jednostkowe backendu wewnątrz kontenera:
+```bash
+podman compose exec backend pytest
+```
+
+### Opcja 2: Uruchomienie lokalne (bez kontenerów)
+
+**Backend (Flask):**
+```bash
+cd backend
+python -m venv venv
+# Aktywacja środowiska (Windows PowerShell): .\venv\Scripts\Activate.ps1
+# Aktywacja środowiska (Linux/macOS): source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+
+**Frontend (React + Vite):**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## Adres aplikacji
+
+Po uruchomieniu poszczególne usługi są dostępne pod adresami:
+* **Frontend (Aplikacja webowa):** `http://localhost:5173` (lub `http://localhost:80` / port zdefiniowany w `compose.yaml`)
+* **Backend (REST API):** `http://localhost:5000`
+* **Healthcheck API:** `http://localhost:5000/api/health`
+
+---
+
+## Opis endpointów API
+
+Wszystkie endpointy poza rejestracją, logowaniem oraz `/api/health` wymagają przekazania tokenu JWT w nagłówku:
+`Authorization: Bearer <token_jwt>`
+
+| Metoda | Endpoint | Wymaga JWT | Opis |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/health` | Nie | Sprawdzenie stanu działania serwera API |
+| `POST` | `/api/auth/register` | Nie | Rejestracja nowego użytkownika (zwraca token JWT) |
+| `POST` | `/api/auth/login` | Nie | Logowanie użytkownika po nazwie lub e-mailu (zwraca token JWT) |
+| `GET` | `/api/auth/me` | Tak | Pobranie danych aktualnie zalogowanego użytkownika |
+| `GET` | `/api/tasks` | Tak | Pobranie listy wszystkich zadań zalogowanego użytkownika |
+| `POST` | `/api/tasks` | Tak | Utworzenie nowego zadania |
+| `PUT` / `PATCH` | `/api/tasks/<id>` | Tak | Aktualizacja istniejącego zadania (np. zmiana statusu/tytułu) |
+| `DELETE` | `/api/tasks/<id>` | Tak | Usunięcie zadania o podanym ID |
+
+---
+
+## Przykładowe żądania (Requests)
+
+### 1. Sprawdzenie statusu API (`/api/health`)
+```bash
+curl -X GET http://localhost:5000/api/health
+```
+**Odpowiedź (200 OK):**
+```json
+{
+  "status": "ok"
+}
+```
+
+### 2. Rejestracja użytkownika (`/api/auth/register`)
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "jan_kowalski",
+    "email": "jan@example.com",
+    "password": "SilneHaslo123"
+  }'
+```
+**Odpowiedź (201 Created):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "username": "jan_kowalski",
+    "email": "jan@example.com"
+  }
+}
+```
+
+### 3. Logowanie użytkownika (`/api/auth/login`)
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "login": "jan_kowalski",
+    "password": "SilneHaslo123"
+  }'
+```
+
+### 4. Utworzenie nowego zadania (`/api/tasks`)
+```bash
+curl -X POST http://localhost:5000/api/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TWOJ_TOKEN_JWT>" \
+  -d '{
+    "title": "Przygotować pipeline CI/CD",
+    "description": "Skonfigurować automatyczne testy w GitHub Actions"
+  }'
+```
+
+### 5. Pobranie listy zadań (`/api/tasks`)
+```bash
+curl -X GET http://localhost:5000/api/tasks \
+  -H "Authorization: Bearer <TWOJ_TOKEN_JWT>"
+```
+**Odpowiedź (200 OK):**
+```json
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Przygotować pipeline CI/CD",
+      "description": "Skonfigurować automatyczne testy w GitHub Actions"
+    }
+  ]
+}
+```
