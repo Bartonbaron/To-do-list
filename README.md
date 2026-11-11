@@ -134,3 +134,17 @@ podman compose down
 Frontend jest serwowany przez Nginx, który przekazuje żądania `/api/` do backendu Flask. Dzięki temu przeglądarka korzysta z jednego adresu i nie trzeba wystawiać portu backendu na hosta.
 
 Plik `.env` zawiera sekrety — nie dodawaj go do repozytorium. Nie używaj przykładowych wartości w środowisku produkcyjnym.
+
+## Tryb deweloperski z hot reload
+
+Do pracy nad kodem można użyć osobnego pliku Compose z Vite HMR i przeładowywaniem backendu Flask:
+
+```powershell
+docker compose -f compose.yaml -f compose.dev.yaml up --build
+```
+
+W tym trybie frontend jest dostępny pod adresem http://localhost:5173, a backend pod http://localhost:5000. Zmiany w plikach `frontend` i `backend` są wykrywane automatycznie. Aby zatrzymać środowisko:
+
+```powershell
+docker compose -f compose.yaml -f compose.dev.yaml down
+```

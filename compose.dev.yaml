@@ -1,0 +1,17 @@
+services:
+  backend:
+    command: flask --app app run --host=0.0.0.0 --port=5000 --debug
+    ports:
+      - "5000:5000"
+    volumes: !override
+      - ./backend:/app
+
+  frontend:
+    build:
+      target: build
+    command: npm run dev -- --host 0.0.0.0
+    ports: !override
+      - "5173:5173"
+    volumes: !override
+      - ./frontend:/app
+      - /app/node_modules
