@@ -318,3 +318,43 @@ curl -X GET http://localhost:5000/api/tasks \
   ]
 }
 ```
+
+---
+
+## Testowanie aplikacji
+
+### Wykorzystane narzędzia i architektura testów
+- **Framework testowy:** `pytest` (Python)
+- **Klient HTTP:** wbudowany klient testowy Flask (`app.test_client()`)
+- **Izolacja bazy danych:** przed każdym testem tworzona jest czysta baza danych **SQLite w pamięci RAM (`sqlite:///:memory:`)**, dzięki czemu testy są w pełni niezależne od kolejności uruchamiania, nie tworzą plików tymczasowych na dysku i nie ingerują w bazę produkcyjną ani deweloperską.
+
+Wszystkie testy znajdują się w osobnym katalogu `backend/tests/`.
+
+### Jak uruchomić testy
+
+#### Opcja 1: Wewnątrz kontenera Podman / Docker (zalecane)
+Upewnij się, że kontenery są uruchomione (`podman compose up -d --build`), a następnie wykonaj pojedyncze polecenie uruchamiające cały zestaw testów:
+
+```bash
+podman compose exec backend pytest -v
+```
+
+#### Opcja 2: Lokalnie (w środowisku wirtualnym Python)
+
+W katalogu backend z aktywnym środowiskiem .venv:
+
+```bash
+cd backend
+pytest -v
+```
+
+### Zakres testów
+
+Zestaw składa się łącznie z 43 testów automatycznych, podzielonych na cztery kategorie odpowiadające wymaganiom projektowym:
+
+Plik testowy | Kategoria testów | Liczba testów |Zakres weryfikacji
+--- | --- | --- | ---
+tests/test_jednostkowe.py	| Testy jednostkowe |	26 |	Hashowanie i weryfikacja haseł w modelu User, serializacja Task.to_dict(), rejestracja i logowanie (dane poprawne oraz błędne: za krótki/długi login, duplikaty e-mail/username, błędne hasło), pojedyncze operacje CRUD na zadaniach oraz walidacja długości pól i typów danych.
+tests/test_integracyjne.py |	Testy integracyjne |	5 |	Wieloetapowe scenariusze użytkownika łączące kilka funkcji w jednym przepływie: pełny cykl życia zadania (rejestracja → /me → dodanie zadania → pobranie listy → oznaczenie jako wykonane), zarządzanie wieloma zadaniami i usuwanie, odporność stanu bazy na błędy walidacji, izolacja danych między dwoma użytkownikami oraz kontrola dostępu ról (użytkownik vs administrator).
+tests/test_bezpieczenstwo.py |	Scenariusze bezpieczeństwa |	11 |	Ochrona przed nieautoryzowanym dostępem bez tokenu JWT (401), izolacja danych użytkowników (BOLA/IDOR — brak możliwości podglądu, edycji i usunięcia cudzych zadań, kod 404), blokada dostępu zwykłego użytkownika do panelu administratora (403) oraz filtrowanie i ukrywanie wrażliwych kolumn (password_hash, tokeny, klucze API).
+tests/test_endpoint.py |	Test endpointu |	1 |	Sprawdzenie dostępności i poprawności odpowiedzi endpointu diagnostycznego GET /api/health (status HTTP 200 oraz payload {"status": "ok"}).
